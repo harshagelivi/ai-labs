@@ -1,0 +1,179 @@
+openapi: 3.0.0
+info:
+  title: Banking API
+  description: API for retrieving bank account information
+  version: 1.0.0
+servers:
+  - url: https://api.bankingservice.com/v1
+security:
+  - BearerAuth: []
+paths:
+  /accounts/by-phone/{phoneNumber}:
+    get:
+      summary: Retrieve all bank accounts associated with a phone number
+      description: Returns a list of all bank accounts linked to the provided phone number.
+      operationId: getAccountsByPhoneNumber
+      parameters:
+        - name: phoneNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: Phone number in E.164 format (e.g., +12125551234)
+          example: "+12125551234"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accounts:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Account'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: No accounts found for the provided phone number
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /accounts/{accountNumber}/balance:
+    get:
+      summary: Retrieve the balance of a specific bank account
+      description: Returns the current balance for the specified account number.
+      operationId: getAccountBalance
+      parameters:
+        - name: accountNumber
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The account number
+          example: "1234567890"
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Balance'
+        '400':
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Account not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Account:
+      type: object
+      required:
+        - accountNumber
+        - accountType
+        - accountHolder
+      properties:
+        accountNumber:
+          type: string
+          description: Unique identifier for the account
+          example: "1234567890"
+        accountType:
+          type: string
+          description: Type of the account
+          enum: [CHECKING, SAVINGS, CREDIT_CARD, LOAN, INVESTMENT]
+          example: "CHECKING"
+        accountHolder:
+          type: string
+          description: Name of the account holder
+          example: "John Doe"
+        accountNickname:
+          type: string
+          description: User-defined nickname for the account
+          example: "Primary Checking"
+        createdAt:
+          type: string
+          format: date-time
+          description: Date when the account was created
+          example: "2023-01-15T12:00:00Z"
+
+    Balance:
+      type: object
+      required:
+        - accountNumber
+        - currentBalance
+        - availableBalance
+        - currency
+      properties:
+        accountNumber:
+          type: string
+          description: Account number
+          example: "1234567890"
+        currentBalance:
+          type: number
+          format: double
+          description: Current total balance
+          example: 1250.75
+        availableBalance:
+          type: number
+          format: double
+          description: Available balance that can be withdrawn
+          example: 1200.50
+        currency:
+          type: string
+          description: Currency code
+          example: "USD"
+        asOf:
+          type: string
+          format: date-time
+          description: Timestamp when the balance was last updated
+          example: "2025-04-15T08:30:45Z"
+
+    Error:
+      type: object
+      required:
+        - code
+        - message
+      properties:
+        code:
+          type: string
+          description: Error code
+          example: "ACCOUNT_NOT_FOUND"
+        message:
+          type: string
+          description: Error message
+          example: "No account found with the provided account number"
+        details:
+          type: object
+          description: Additional error details

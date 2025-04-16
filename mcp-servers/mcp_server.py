@@ -1,3 +1,4 @@
+import yaml
 from mcp.server.fastmcp import FastMCP
 
 from prompts import client_report_generation, transaction_summary
@@ -24,6 +25,13 @@ async def risk_analyzer_tool(portfolio_id: str, assets: list):
 @mcp.resource(uri='stocks://{stock_id}')
 async def get_stocks_data(stock_id: str):
     return market_data.get_stock_quote(stock_id)
+
+
+@mcp.resource(uri='openapi-spec://account-service-apis',
+              description='Returns the api spec of the apis that deal with user accounts and their balances')
+async def accounts_service_api_spec():
+    with open('resources/apis.yaml', 'r') as stream:
+        return yaml.safe_load(stream)
 
 
 @mcp.resource(uri='stocks://{stock_id}')
